@@ -1,7 +1,7 @@
 # Fork created because I have issues with the torch model
 Without any tweaks to `ddm_predictor.py` The error when executing 
 ```bash
-python ddm_trainer.py simulator.policy=random
+python ddm_predictor.py simulator.policy=random
 ```
 is:
 ```
