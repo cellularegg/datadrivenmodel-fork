@@ -131,6 +131,8 @@ class PyTorchModel(BaseModel):
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.build_model(scale_data=scale_data)
+        if not any([s in filename for s in [".pkl", ".pickle"]]):
+            filename += ".pkl"
         self.model = pickle.load(open(filename, "rb"))
 
     def predict(self, X):

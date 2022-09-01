@@ -445,7 +445,8 @@ def main(cfg: DictConfig):
     Model = available_models[model_name]
     model = Model()
 
-    model.load_model(filename=save_path, scale_data=scale_data)
+    model.load_model(filename=save_path, scale_data=scale_data, input_dim=40, output_dim=4)
+    # model.load_model(filename=save_path, scale_data=scale_data, input_dim=4, output_dim=4)
     # model.build_model(**cfg["model"]["build_params"])
 
     if not initial_states:

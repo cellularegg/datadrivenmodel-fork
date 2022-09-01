@@ -1,3 +1,60 @@
+# Fork created because I have issues with the torch model
+Without any tweaks to `ddm_predictor.py` The error when executing 
+```bash
+python ddm_trainer.py simulator.policy=random
+```
+is:
+```
+Traceback (most recent call last):
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 448, in main
+    model.load_model(filename=save_path, scale_data=scale_data)
+TypeError: load_model() missing 2 required positional arguments: 'input_dim' and 'output_dim'
+
+```
+
+When manually adding `input_dim=40` and `output_dim=4` (dimensions retrieved by debugging ddm_trainer) the following error occurred:
+```
+Traceback (most recent call last):
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 448, in main
+    model.load_model(filename=save_path, scale_data=scale_data, input_dim=40, output_dim=4)
+  File "/<path>/datadrivenmodel-fork/torch_models.py", line 136, in load_model
+    self.model = pickle.load(open(filename, "rb"))
+FileNotFoundError: [Errno 2] No such file or directory: '/<path>/datadrivenmodel-fork/models/torch_model'
+```
+Adding the check if the filename ends with .pkl from `base.py` before the load in `torch_models.py` resolved the issue. Then the following error occurrs:
+
+```
+Traceback (most recent call last):
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 640, in <module>
+    main()
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/main.py", line 32, in decorated_main
+    _run_hydra(
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/_internal/utils.py", line 346, in _run_hydra
+    run_and_report(
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/_internal/utils.py", line 201, in run_and_report
+    raise ex
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/_internal/utils.py", line 198, in run_and_report
+    return func()
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/_internal/utils.py", line 347, in <lambda>
+    lambda: hydra.run(
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/_internal/hydra.py", line 107, in run
+    return run_job(
+  File "/<path>/miniconda3/envs/ddm/lib/python3.8/site-packages/hydra/core/utils.py", line 128, in run_job
+    ret.return_value = task_function(task_cfg)
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 480, in main
+    test_policy(
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 394, in test_policy
+    sim.episode_step(action)
+  File "/<path>/datadrivenmodel-fork/ddm_predictor.py", line 283, in episode_step
+    preds = self.model.predict(X)  # absolute prediction
+  File "/<path>/datadrivenmodel-fork/torch_models.py", line 141, in predict
+    X = self.xscalar.transform(X)
+AttributeError: 'PyTorchModel' object has no attribute 'xscalar'
+```
+Which can be traced back to the scaling of the data for the pytorch model. When setting `scaling` in `torch.yaml` to `False` it works without any error messages. However, the output state of the sim is always 
+`Current state: {'cart_position': 0.0, 'cart_velocity': 0.0, 'pole_angle': 0.0, 'pole_angular_velocity': 0.0}` no matter what the command is. I also tired setting the input and output dimensions to 4, but that did not help either.
+
+
 # Training Data-Driven or Surrogate Simulators
 
 This repository provides a template for training data-driven simulators that can then be leveraged for training brains (reinforcement learning agents) with [Project Bonsai](https://docs.bons.ai/).
